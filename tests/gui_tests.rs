@@ -218,6 +218,22 @@ mod gui_tests {
         gui_state.is_running = false;
         assert!(!gui_state.is_running);
     }
+
+    #[test]
+    fn test_gui_state_accent_enabled() {
+        let mut gui_state = GuiState::new();
+        
+        // Initially accent enabled
+        assert!(gui_state.accent_enabled);
+        
+        // Test disabling accents
+        gui_state.accent_enabled = false;
+        assert!(!gui_state.accent_enabled);
+        
+        // Test enabling accents
+        gui_state.accent_enabled = true;
+        assert!(gui_state.accent_enabled);
+    }
 }#[cfg(not(
 feature = "gui"))]
 mod gui_disabled_tests {

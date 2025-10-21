@@ -17,7 +17,26 @@ pub struct MetronomeApp {
 impl MetronomeApp {
     pub fn new() -> Self {
         let metronome = Arc::new(Mutex::new(Metronome::new()));
-        let gui_state = GuiState::new();
+        let mut gui_state = GuiState::new();
+        
+        // Try to load saved configuration
+        if let Ok(config) = Self::load_config() {
+            gui_state.volume = config.volume;
+            gui_state.selected_time_signature = config.time_signature;
+            gui_state.selected_beat_sound = config.beat_sound.clone();
+            gui_state.selected_accent_sound = config.accent_sound.clone();
+            gui_state.accent_enabled = config.accent_enabled;
+            gui_state.bpm_input = config.bpm.to_string();
+            
+            // Apply loaded settings to metronome
+            if let Ok(metronome) = metronome.lock() {
+                let _ = metronome.set_bpm(config.bpm);
+                metronome.set_time_signature(config.time_signature);
+                metronome.set_sounds(config.beat_sound, config.accent_sound);
+                metronome.set_accent_enabled(config.accent_enabled);
+                let _ = metronome.set_volume(config.volume);
+            }
+        }
         
         // Initialize audio engine
         let audio_engine = {
@@ -72,6 +91,18 @@ impl MetronomeApp {
         }
     }
     
+    /// Test a sound with specific volume
+    fn test_sound_with_volume(&mut self, sound_type: &SoundType, volume: f32) {
+        if let Some(audio_engine) = &self.audio_engine {
+            if let Err(e) = audio_engine.play_sound_with_volume(sound_type, volume) {
+                self.gui_state.set_error(format!("Failed to play sound: {}", e));
+            }
+        } else {
+            // Visual feedback when audio is not available
+            self.gui_state.update_beat_visual();
+        }
+    }
+    
     /// Start the metronome
     fn start_metronome(&mut self) {
         if let Ok(metronome) = self.metronome.lock() {
@@ -116,8 +147,8 @@ impl MetronomeApp {
                 if metronome.should_play_beat(last_beat) {
                     // Play the beat
                     let beat = metronome.increment_beat();
-                    // Use accent sound for strong beats (strength >= 1.0) only
-                    let sound_type = if beat.get_accent_strength() >= 1.0 {
+                    // Use accent sound for strong beats (strength >= 1.0) only, and only if accents are enabled
+                    let sound_type = if self.gui_state.accent_enabled && beat.get_accent_strength() >= 1.0 {
                         &self.gui_state.selected_accent_sound
                     } else {
                         &self.gui_state.selected_beat_sound
@@ -125,7 +156,7 @@ impl MetronomeApp {
                     
                     // Play audio if available
                     if let Some(audio_engine) = &self.audio_engine {
-                        if let Err(e) = audio_engine.play_sound(sound_type) {
+                        if let Err(e) = audio_engine.play_sound_with_volume(sound_type, self.gui_state.volume) {
                             eprintln!("Audio playback error: {}", e);
                         }
                     }
@@ -136,6 +167,55 @@ impl MetronomeApp {
                 }
             }
         }
+    }
+    
+    /// Load configuration from file
+    fn load_config() -> crate::error::Result<crate::models::MetronomeConfig> {
+        let config_path = Self::get_config_path()?;
+        if config_path.exists() {
+            crate::models::MetronomeConfig::load_from_file(&config_path)
+        } else {
+            Ok(crate::models::MetronomeConfig::default())
+        }
+    }
+    
+    /// Save configuration to file
+    fn save_config(&self) -> crate::error::Result<()> {
+        let config_path = Self::get_config_path()?;
+        
+        // Create config directory if it doesn't exist
+        if let Some(parent) = config_path.parent() {
+            std::fs::create_dir_all(parent)
+                .map_err(|e| crate::error::ConfigError::WriteError(format!("Failed to create config directory: {}", e)))?;
+        }
+        
+        let config = crate::models::MetronomeConfig {
+            bpm: self.gui_state.bpm_input.parse().unwrap_or(120),
+            time_signature: self.gui_state.selected_time_signature,
+            beat_sound: self.gui_state.selected_beat_sound.clone(),
+            accent_sound: self.gui_state.selected_accent_sound.clone(),
+            sound_enabled: true,
+            visual_enabled: true,
+            accent_enabled: self.gui_state.accent_enabled,
+            volume: self.gui_state.volume,
+        };
+        
+        config.save_to_file(&config_path)
+    }
+    
+    /// Get the configuration file path
+    fn get_config_path() -> crate::error::Result<std::path::PathBuf> {
+        use std::path::PathBuf;
+        
+        // Try to get user config directory
+        let config_dir = if let Some(config_dir) = dirs::config_dir() {
+            config_dir.join("cli-metronome")
+        } else {
+            // Fallback to current directory
+            PathBuf::from(".")
+        };
+        
+        Ok(config_dir.join("config.json"))
     }
 }
 
@@ -319,6 +399,19 @@ impl eframe::App for MetronomeApp {
                     }
                 });
                 
+                // Accent enabled toggle
+                ui.horizontal(|ui| {
+                    ui.label("Enable Accents:");
+                    let accent_changed = ui.checkbox(&mut self.gui_state.accent_enabled, "Use different sounds for strong beats");
+                    
+                    if accent_changed.changed() {
+                        // Update metronome state when accent setting changes
+                        if let Ok(metronome) = self.metronome.lock() {
+                            metronome.set_accent_enabled(self.gui_state.accent_enabled);
+                        }
+                    }
+                });
+                
                 // Custom sound file selection (placeholder for now)
                 ui.horizontal(|ui| {
                     ui.label("Custom Sound:");
@@ -335,6 +428,47 @@ impl eframe::App for MetronomeApp {
                 } else {
                     ui.colored_label(egui::Color32::YELLOW, "Audio Status: Visual-only mode");
                 }
+            });
+            
+            ui.separator();
+            
+            // Volume Controls Section
+            ui.group(|ui| {
+                ui.label("Volume Control");
+                
+                ui.horizontal(|ui| {
+                    ui.label("Volume:");
+                    
+                    // Volume slider
+                    let volume_changed = ui.add(
+                        egui::Slider::new(&mut self.gui_state.volume, 0.0..=1.0)
+                            .text("Volume")
+                            .show_value(false)
+                    ).changed();
+                    
+                    // Volume percentage display
+                    ui.label(format!("{}%", (self.gui_state.volume * 100.0) as u32));
+                    
+                    // Apply volume change to metronome
+                    if volume_changed {
+                        if let Ok(metronome) = self.metronome.lock() {
+                            if let Err(e) = metronome.set_volume(self.gui_state.volume) {
+                                self.gui_state.set_error(e.to_string());
+                            }
+                        }
+                    }
+                });
+                
+                ui.horizontal(|ui| {
+                    // Volume test buttons
+                    if ui.button("Test Beat Sound").clicked() {
+                        self.test_sound_with_volume(&self.gui_state.selected_beat_sound.clone(), self.gui_state.volume);
+                    }
+                    
+                    if ui.button("Test Accent Sound").clicked() {
+                        self.test_sound_with_volume(&self.gui_state.selected_accent_sound.clone(), self.gui_state.volume);
+                    }
+                });
             });
             
             ui.separator();
@@ -418,7 +552,7 @@ impl eframe::App for MetronomeApp {
                         for beat_num in 1..=beats_per_measure {
                             let is_current_beat = beat_num == state.current_beat_in_measure;
                             // Create a temporary beat to check accent strength
-                            let temp_beat = crate::models::Beat::new(beat_num as u64, state.time_signature, state.bpm);
+                            let temp_beat = crate::models::Beat::new_with_accent_setting(beat_num as u64, state.time_signature, state.bpm, self.gui_state.accent_enabled);
                             let is_strong_accent = temp_beat.get_accent_strength() >= 1.0;
                             let is_medium_accent = temp_beat.get_accent_strength() > 0.0 && temp_beat.get_accent_strength() < 1.0;
                             
@@ -452,10 +586,11 @@ impl eframe::App for MetronomeApp {
                         
                         // Beat strength indicator
                         if state.is_running && state.beat_count > 0 {
-                            let current_beat = crate::models::Beat::new(
+                            let current_beat = crate::models::Beat::new_with_accent_setting(
                                 state.beat_count, 
                                 state.time_signature, 
-                                state.bpm
+                                state.bpm,
+                                self.gui_state.accent_enabled
                             );
                             let strength = current_beat.get_accent_strength();
                             
@@ -483,7 +618,7 @@ impl eframe::App for MetronomeApp {
                             if beat_visual_active {
                                 // Flash effect for beat
                                 // Create a temporary beat to check accent strength
-                                let temp_beat = crate::models::Beat::new(state.current_beat_in_measure as u64, state.time_signature, state.bpm);
+                                let temp_beat = crate::models::Beat::new_with_accent_setting(state.current_beat_in_measure as u64, state.time_signature, state.bpm, self.gui_state.accent_enabled);
                                 let accent_strength = temp_beat.get_accent_strength();
                                 let color = if accent_strength >= 1.0 {
                                     egui::Color32::from_rgb(255, 100, 100) // Light red for strong accent
@@ -523,5 +658,12 @@ impl eframe::App for MetronomeApp {
         
         // Request repaint for smooth updates
         ctx.request_repaint();
+    }
+    
+    fn on_exit(&mut self, _gl: Option<&eframe::glow::Context>) {
+        // Save configuration when exiting
+        if let Err(e) = self.save_config() {
+            eprintln!("Warning: Failed to save configuration: {}", e);
+        }
     }
 }

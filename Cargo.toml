@@ -19,6 +19,7 @@ eframe = { version = "0.24", optional = true, features = ["default_fonts", "glow
 tokio = { version = "1.0", features = ["rt-multi-thread", "time"], optional = true }
 serde = { version = "1.0", features = ["derive"], optional = true }
 serde_json = { version = "1.0", optional = true }
+dirs = { version = "5.0", optional = true }
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = [
@@ -29,4 +30,4 @@ winapi = { version = "0.3", features = [
 [features]
 default = ["audio", "gui"]
 audio = ["rodio"]
-gui = ["egui", "eframe", "tokio", "serde", "serde_json"]
+gui = ["egui", "eframe", "tokio", "serde", "serde_json", "dirs"]

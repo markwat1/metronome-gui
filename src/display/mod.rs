@@ -148,6 +148,12 @@ impl DisplayEngine {
         println!();
         
         match time_signature {
+            TimeSignature::One => {
+                println!("  \x1b[36m1/4 Time Signature:\x1b[0m");
+                println!("    Beat positions: 1 2");
+                println!("    Pattern: \x1b[2m○\x1b[0m");
+                println!("    Description: weak");
+            }
             TimeSignature::Two => {
                 println!("  \x1b[36m2/4 Time Signature:\x1b[0m");
                 println!("    Beat positions: 1 2");
@@ -166,11 +172,29 @@ impl DisplayEngine {
                 println!("    Pattern: \x1b[1;31m●\x1b[0m \x1b[2m○\x1b[0m \x1b[1;33m◐\x1b[0m \x1b[2m○\x1b[0m");
                 println!("    Description: Strong-weak-medium-weak (common time)");
             }
+            TimeSignature::Five => {
+                println!("  \x1b[36m5/8 Time Signature:\x1b[0m");
+                println!("    Beat positions: 1 2 3 4 5");
+                println!("    Pattern: \x1b[1;31m●\x1b[0m \x1b[2m○\x1b[0m \x1b[2m○\x1b[0m \x1b[2m○\x1b[0m \x1b[2m○\x1b[0m");
+                println!("    Description: Strong-weak-weak-weak-weak");
+            }
             TimeSignature::Six => {
                 println!("  \x1b[36m6/8 Time Signature:\x1b[0m");
                 println!("    Beat positions: 1 2 3 4 5 6");
                 println!("    Pattern: \x1b[1;31m●\x1b[0m \x1b[2m○\x1b[0m \x1b[2m○\x1b[0m \x1b[1;33m◐\x1b[0m \x1b[2m○\x1b[0m \x1b[2m○\x1b[0m");
                 println!("    Description: Strong-weak-weak-medium-weak-weak (compound time)");
+            }
+            TimeSignature::Seven => {
+                println!("  \x1b[36m7/8 Time Signature:\x1b[0m");
+                println!("    Beat positions: 1 2 3 4 5 6 7");
+                println!("    Pattern: \x1b[1;31m●\x1b[0m \x1b[2m○\x1b[0m \x1b[2m○\x1b[0m \x1b[2m○\x1b[0m \x1b[2m○\x1b[0m \x1b[2m○\x1b[0m \x1b[2m○\x1b[0m");
+                println!("    Description: Strong-weak-weak-weak-weak-weak-weak");
+            }
+            TimeSignature::Eight => {
+                println!("  \x1b[36m8/8 Time Signature:\x1b[0m");
+                println!("    Beat positions: 1 2 3 4 5 6 7 8");
+                println!("    Pattern: \x1b[1;31m●\x1b[0m \x1b[2m○\x1b[0m \x1b[2m○\x1b[0m \x1b[2m○\x1b[0m \x1b[1;33m◐\x1b[0m \x1b[2m○\x1b[0m \x1b[2m○\x1b[0m \x1b[2m○\x1b[0m");
+                println!("    Description: Strong-weak-weak-medium-weak-weak-weak (compound time)");
             }
         }
         println!();
@@ -275,10 +299,14 @@ impl DisplayEngine {
     /// Get time signature display with current beat emphasis
     fn get_time_signature_display(&self, time_signature: TimeSignature) -> String {
         match time_signature {
+            TimeSignature::One => format!("\x1b[36m1/4\x1b[0m"),     // Cyan
             TimeSignature::Two => format!("\x1b[36m2/4\x1b[0m"),     // Cyan
             TimeSignature::Three => format!("\x1b[36m3/4\x1b[0m"),   // Cyan
             TimeSignature::Four => format!("\x1b[36m4/4\x1b[0m"),    // Cyan
+            TimeSignature::Five => format!("\x1b[36m5/8\x1b[0m"),   // Cyan
             TimeSignature::Six => format!("\x1b[36m6/8\x1b[0m"),     // Cyan
+            TimeSignature::Seven => format!("\x1b[36m7/8\x1b[0m"),     // Cyan
+            TimeSignature::Eight => format!("\x1b[36m8/8\x1b[0m"),     // Cyan
         }
     }
     

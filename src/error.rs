@@ -5,6 +5,9 @@ pub enum MetronomeError {
     #[error("Invalid BPM value: {0}. Must be between 60 and 200")]
     InvalidBpm(u32),
     
+    #[error("Invalid volume value: {0}. Must be between 0.0 and 1.0")]
+    InvalidVolume(f32),
+    
     #[error("Audio system error: {0}")]
     AudioError(#[from] AudioError),
     

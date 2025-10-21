@@ -7,9 +7,9 @@ A cross-platform dual-mode metronome application written in Rust. Features both 
 ### Core Features
 - 🎵 **Accurate Timing**: High-precision metronome with BPM range from 60 to 200
 - 🖥️ **Dual Mode**: Both GUI and CLI interfaces for different use cases
-- 🎼 **Time Signatures**: Support for 2/4, 3/4, 4/4, and 6/8 time signatures
+- 🎼 **Time Signatures**: Support for 8 time signatures (1/4, 2/4, 3/4, 4/4, 5/8, 6/8, 7/8, 8/8)
 - 🔊 **Multiple Sounds**: Built-in sounds (Click, Wood, Beep) plus custom sound file support
-- 🎯 **Strong/Weak Beats**: Accent patterns based on time signature (strong, medium, weak beats)
+- 🎯 **Three-Level Beat Accents**: Advanced accent patterns with strong, medium, and weak beats based on time signature
 - 👁️ **Visual Indicators**: Real-time visual beat indicators and status display
 - 🖥️ **Cross-Platform**: Works on Windows and Linux
 - ⚡ **Lightweight**: Minimal resource usage with efficient Rust implementation
@@ -24,13 +24,14 @@ A cross-platform dual-mode metronome application written in Rust. Features both 
 - 📊 **Real-time Display**: Live BPM, time, beat count, and visual beat indicators
 - 🎨 **Beat Visualization**: Color-coded beat strength indicators
 - 🔧 **Sound Testing**: Test button for each sound type
+- 🎛️ **Accent Control**: Toggle accent functionality on/off
 
 ### CLI Mode Features
 - ⚡ **Fast Startup**: Quick command-line operation
 - 📊 **Enhanced Display**: Detailed beat pattern visualization
 - 🎨 **Color-coded Beats**: Terminal colors for strong/medium/weak beats
 - 📈 **Progress Indicators**: Measure progress bars and beat position tracking
-- 🎼 **Time Signature Legends**: Visual explanation of beat patterns
+- 🎼 **Time Signature Legends**: Visual explanation of beat patterns for all 8 supported time signatures
 
 ## Installation
 
@@ -125,9 +126,10 @@ cli-metronome
 #### GUI Controls
 
 - **BPM Input**: Enter BPM directly or use +/- buttons (60-200 range)
-- **Time Signature**: Select from 2/4, 3/4, 4/4, or 6/8 time signatures
+- **Time Signature**: Select from 8 time signatures (1/4, 2/4, 3/4, 4/4, 5/8, 6/8, 7/8, 8/8)
 - **Beat Sound**: Choose sound for regular beats (Click, Wood, Beep)
 - **Accent Sound**: Choose sound for strong beats (Click, Wood, Beep)
+- **Accent Control**: Toggle accent functionality on/off
 - **Start/Stop**: Control metronome playback
 - **Reset**: Reset beat count and position
 - **Test Sounds**: Preview selected sounds
@@ -135,13 +137,15 @@ cli-metronome
 #### GUI Features
 
 - Real-time BPM, elapsed time, and beat count display
-- Visual beat indicators with color-coded strength:
+- Advanced visual beat indicators with color-coded strength:
   - 🔴 **Red**: Strong beats (downbeats)
-  - 🟡 **Yellow**: Medium beats (partial accents)
-  - ⚪ **White**: Weak beats
-- Beat position within measure (e.g., "Beat 2/4")
-- Measure progress visualization
+  - 🟡 **Orange**: Medium beats (partial accents)
+  - 🟢 **Green**: Current weak beats
+  - ⚪ **Gray**: Non-current beats
+- Beat position within measure with beats per measure display (e.g., "Beat 2/4")
+- Measure progress visualization with beat pattern display
 - Audio status indicator
+- Accent enable/disable control with visual feedback
 
 ### CLI Mode
 
@@ -188,7 +192,12 @@ Options:
 
 ### Time Signatures
 
-The metronome supports four common time signatures with appropriate accent patterns:
+The metronome supports eight time signatures with appropriate accent patterns:
+
+#### 1/4 Time (One-Four)
+- **Pattern**: Weak (no accents)
+- **Visual**: ○
+- **Use**: Special practice mode, no time signature
 
 #### 2/4 Time (Two-Four)
 - **Pattern**: Strong-weak
@@ -205,10 +214,25 @@ The metronome supports four common time signatures with appropriate accent patte
 - **Visual**: ● ○ ◐ ○
 - **Use**: Most popular music, rock, pop
 
+#### 5/8 Time (Five-Eight)
+- **Pattern**: Strong-weak-weak-weak-weak
+- **Visual**: ● ○ ○ ○ ○
+- **Use**: Complex rhythms, progressive music
+
 #### 6/8 Time (Six-Eight)
 - **Pattern**: Strong-weak-weak-medium-weak-weak
 - **Visual**: ● ○ ○ ◐ ○ ○
 - **Use**: Compound time, ballads, folk music
+
+#### 7/8 Time (Seven-Eight)
+- **Pattern**: Strong-weak-weak-weak-weak-weak-weak
+- **Visual**: ● ○ ○ ○ ○ ○ ○
+- **Use**: Complex rhythms, progressive music
+
+#### 8/8 Time (Eight-Eight)
+- **Pattern**: Strong-weak-weak-weak-medium-weak-weak-weak
+- **Visual**: ● ○ ○ ○ ◐ ○ ○ ○
+- **Use**: Complex compound time
 
 ### Sound Options
 
@@ -515,9 +539,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ### v0.1.0
 - **Dual Mode Interface**: Both GUI and CLI modes
-- **Time Signature Support**: 2/4, 3/4, 4/4, and 6/8 time signatures
+- **Time Signature Support**: 8 time signatures (1/4, 2/4, 3/4, 4/4, 5/8, 6/8, 7/8, 8/8)
 - **Multiple Sound Options**: Built-in sounds (Click, Wood, Beep) plus custom file support
-- **Strong/Weak Beat Patterns**: Accent patterns based on time signature
+- **Three-Level Beat Patterns**: Advanced accent patterns with strong, medium, and weak beats
 - **Enhanced Visual Indicators**: Color-coded beat strength indicators
 - **GUI Features**:
   - Intuitive graphical interface with egui/eframe
@@ -525,11 +549,13 @@ This project is licensed under the MIT License - see the LICENSE file for detail
   - Time signature and sound selection dropdowns
   - Real-time beat visualization and status display
   - Sound testing capabilities
+  - Accent control (enable/disable accents)
 - **CLI Enhancements**:
-  - Enhanced display with time signature legends
-  - Color-coded beat indicators
+  - Enhanced display with time signature legends for all 8 time signatures
+  - Color-coded beat indicators (strong/medium/weak)
   - Measure progress visualization
   - Beat position tracking
+  - Real-time beat pattern visualization
 - **Audio Engine**: 
   - Multiple built-in sound generation
   - Custom sound file support (WAV, MP3, OGG)
@@ -539,3 +565,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - **Comprehensive Testing**: GUI, audio, and dual-mode integration tests
 - **BPM Range**: 60-200 with validation
 - **Robust Error Handling**: Graceful degradation and user-friendly error messages
+- **Enhanced Beat System**: Three-level accent system with configurable accent enable/disable

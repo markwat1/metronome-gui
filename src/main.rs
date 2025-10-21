@@ -66,5 +66,8 @@ fn handle_application_error(error: &MetronomeError) {
             eprintln!("GUI error: {}", gui_err);
             eprintln!("The application will attempt to continue or fall back to CLI mode.");
         }
+        MetronomeError::InvalidVolume(volume) => {
+            eprintln!("Invalid volume value: {}. Please use a value between 0.0 and 1.0.", volume);
+        }
     }
 }

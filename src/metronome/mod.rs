@@ -48,6 +48,21 @@ impl Metronome {
         state.update_sounds(beat_sound, accent_sound);
     }
     
+    pub fn set_accent_enabled(&self, accent_enabled: bool) {
+        let mut state = self.state.lock().unwrap();
+        state.update_accent_enabled(accent_enabled);
+    }
+    
+    pub fn set_volume(&self, volume: f32) -> Result<()> {
+        let mut state = self.state.lock().unwrap();
+        state.update_volume(volume)
+    }
+    
+    pub fn get_volume(&self) -> f32 {
+        let state = self.state.lock().unwrap();
+        state.volume
+    }
+    
     pub fn get_time_signature(&self) -> crate::models::TimeSignature {
         let state = self.state.lock().unwrap();
         state.time_signature
@@ -89,7 +104,8 @@ impl Metronome {
     
     /// Update multiple settings atomically
     pub fn update_settings(&self, bpm: Option<u32>, time_signature: Option<crate::models::TimeSignature>, 
-                          beat_sound: Option<crate::models::SoundType>, accent_sound: Option<crate::models::SoundType>) -> Result<()> {
+                          beat_sound: Option<crate::models::SoundType>, accent_sound: Option<crate::models::SoundType>,
+                          accent_enabled: Option<bool>, volume: Option<f32>) -> Result<()> {
         let mut state = self.state.lock().unwrap();
         
         if let Some(bpm) = bpm {
@@ -109,6 +125,14 @@ impl Metronome {
         
         if let Some(accent) = accent_sound {
             state.accent_sound = accent;
+        }
+        
+        if let Some(enabled) = accent_enabled {
+            state.update_accent_enabled(enabled);
+        }
+        
+        if let Some(vol) = volume {
+            state.update_volume(vol)?;
         }
         
         Ok(())
@@ -302,8 +326,9 @@ impl MetronomeController {
     
     /// Update metronome settings atomically
     pub fn update_metronome_settings(&self, bpm: Option<u32>, time_signature: Option<crate::models::TimeSignature>, 
-                                   beat_sound: Option<crate::models::SoundType>, accent_sound: Option<crate::models::SoundType>) -> Result<()> {
-        self.metronome.update_settings(bpm, time_signature, beat_sound, accent_sound)
+                                   beat_sound: Option<crate::models::SoundType>, accent_sound: Option<crate::models::SoundType>,
+                                   accent_enabled: Option<bool>, volume: Option<f32>) -> Result<()> {
+        self.metronome.update_settings(bpm, time_signature, beat_sound, accent_sound, accent_enabled, volume)
     }
 }#[cfg
 (test)]
@@ -470,7 +495,9 @@ mod tests {
             Some(140),
             Some(TimeSignature::Three),
             Some(SoundType::BuiltinWood),
-            Some(SoundType::BuiltinBeep)
+            Some(SoundType::BuiltinBeep),
+            None,
+            None
         );
         
         assert!(result.is_ok());
@@ -478,7 +505,7 @@ mod tests {
         assert_eq!(metronome.get_time_signature(), TimeSignature::Three);
         
         // Test invalid BPM in atomic update
-        let result = metronome.update_settings(Some(300), None, None, None);
+        let result = metronome.update_settings(Some(300), None, None, None, None, None);
         assert!(result.is_err());
         // BPM should remain unchanged after failed update
         assert_eq!(metronome.get_bpm(), 140);
@@ -537,9 +564,38 @@ mod tests {
             Some(140), 
             Some(crate::models::TimeSignature::Four), 
             None, 
+            None,
+            None,
             None
         );
         assert!(result.is_ok());
         assert_eq!(controller.get_metronome().get_bpm(), 140);
+    }
+    
+    #[test]
+    fn test_volume_control() {
+        let metronome = Metronome::with_bpm(120).unwrap();
+        
+        // Test default volume
+        assert_eq!(metronome.get_volume(), 0.7);
+        
+        // Test setting valid volume
+        assert!(metronome.set_volume(0.5).is_ok());
+        assert_eq!(metronome.get_volume(), 0.5);
+        
+        // Test setting invalid volumes
+        assert!(metronome.set_volume(-0.1).is_err());
+        assert!(metronome.set_volume(1.1).is_err());
+        assert_eq!(metronome.get_volume(), 0.5); // Should remain unchanged
+        
+        // Test volume in atomic settings update
+        let result = metronome.update_settings(None, None, None, None, None, Some(0.8));
+        assert!(result.is_ok());
+        assert_eq!(metronome.get_volume(), 0.8);
+        
+        // Test invalid volume in atomic update
+        let result = metronome.update_settings(None, None, None, None, None, Some(1.5));
+        assert!(result.is_err());
+        assert_eq!(metronome.get_volume(), 0.8); // Should remain unchanged after failed update
     }
 }

@@ -36,10 +36,11 @@
 - **CLI解析**: clap crate（引数解析とヘルプ生成）
 - **GUI フレームワーク**: egui + eframe（軽量、クロスプラットフォーム GUI）
 - **音声再生**: rodio crate（クロスプラットフォーム音声）
-- **音声ファイル**: 内蔵音声データ + カスタムファイル読み込み
+- **音声ファイル**: 内蔵音声データ（Click、Wood、Beep）+ カスタムファイル読み込み（WAV、MP3、OGG）
 - **タイミング**: std::time（高精度タイマー）
 - **信号処理**: ctrlc crate（CLI モード用 Ctrl+C 処理）
 - **非同期処理**: tokio（GUI と音声の並行処理）
+- **シリアライゼーション**: serde + serde_json（設定ファイル保存用）
 
 ## Components and Interfaces
 
@@ -93,6 +94,8 @@ pub struct MetronomeState {
     pub start_time: Option<Instant>,
     pub beat_count: u64,
     pub current_beat_in_measure: u32,
+    pub accent_enabled: bool,
+    pub volume: f32,
 }
 
 pub struct Metronome {
@@ -105,6 +108,8 @@ impl Metronome {
     pub fn set_bpm(&mut self, bpm: u32) -> Result<(), MetronomeError>
     pub fn set_time_signature(&mut self, sig: TimeSignature)
     pub fn set_sounds(&mut self, beat: SoundType, accent: SoundType)
+    pub fn set_accent_enabled(&mut self, enabled: bool)
+    pub fn set_volume(&mut self, volume: f32) -> Result<(), MetronomeError>
     pub fn start(&mut self) -> Result<(), MetronomeError>
     pub fn stop(&mut self)
     pub fn get_state(&self) -> MetronomeState
@@ -132,10 +137,14 @@ pub enum SoundType {
 
 #[derive(Debug, Clone)]
 pub enum TimeSignature {
+    One,    // 1/4 (no time signature)
     Two,    // 2/4
     Three,  // 3/4
     Four,   // 4/4
+    Five,   // 5/8
     Six,    // 6/8
+    Seven,  // 7/8
+    Eight,  // 8/8
 }
 
 pub struct AudioEngine {
@@ -148,6 +157,9 @@ impl AudioEngine {
     pub fn load_builtin_sounds(&mut self) -> Result<(), AudioError>
     pub fn load_custom_sound(&mut self, path: &Path) -> Result<SoundType, AudioError>
     pub fn play_sound(&self, sound_type: &SoundType) -> Result<(), AudioError>
+    pub fn play_sound_with_volume(&self, sound_type: &SoundType, volume: f32) -> Result<(), AudioError>
+    pub fn set_volume(&mut self, volume: f32)
+    pub fn get_volume(&self) -> f32
     pub fn is_available(&self) -> bool
 }
 ```
@@ -182,8 +194,12 @@ impl MetronomeApp {
     fn render_controls(&mut self, ui: &mut egui::Ui)
     fn render_status(&mut self, ui: &mut egui::Ui)
     fn render_beat_indicator(&mut self, ui: &mut egui::Ui)
+    fn render_accent_controls(&mut self, ui: &mut egui::Ui)
+    fn render_volume_controls(&mut self, ui: &mut egui::Ui)
     fn handle_start_stop(&mut self)
     fn validate_bpm(&self, input: &str) -> Result<u32, String>
+    fn test_sound(&mut self, sound_type: &SoundType)
+    fn test_sound_with_volume(&mut self, sound_type: &SoundType, volume: f32)
 }
 ```
 
@@ -207,7 +223,10 @@ pub struct DisplayEngine {
 impl DisplayEngine {
     pub fn new() -> Self
     pub fn show_status(&self, state: &MetronomeState)
-    pub fn show_beat_indicator(&self, is_accent: bool)
+    pub fn show_beat_indicator(&self, beat: &Beat)
+    pub fn show_enhanced_beat_indicator(&self, beat: &Beat)
+    pub fn show_time_signature_legend(&self, time_signature: TimeSignature)
+    pub fn show_realtime_beat_visualization(&self, beat: &Beat)
     pub fn clear_line(&self)
     pub fn show_help(&self)
 }
@@ -231,6 +250,8 @@ pub struct MetronomeConfig {
     pub accent_sound: SoundType,
     pub sound_enabled: bool,
     pub visual_enabled: bool,
+    pub accent_enabled: bool,
+    pub volume: f32,
 }
 
 impl MetronomeConfig {
@@ -290,6 +311,8 @@ pub struct GuiState {
     pub is_running: bool,
     pub error_message: Option<String>,
     pub last_beat_visual: Option<Instant>,
+    pub accent_enabled: bool,
+    pub volume: f32,
 }
 ```
 

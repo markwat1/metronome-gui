@@ -15,6 +15,7 @@
 - **Accent_Sound**: 拍子の最初の拍で再生される強調音
 - **Sound_Data**: メトロノーム音として使用する音声ファイルまたは音声データ
 - **GUI_Window**: グラフィカルユーザーインターフェースのメインウィンドウ
+- **Volume_Level**: 音声の音量レベル（0.0から1.0の範囲）
 
 ## Requirements
 
@@ -49,6 +50,9 @@
 1. WHILE CLI_Modeで動作している間、THE Metronome_App SHALL 現在のBPM値を表示する
 2. WHILE CLI_Modeで動作している間、THE Metronome_App SHALL 経過時間を表示する
 3. THE Metronome_App SHALL CLI_Modeで拍ごとに視覚的なインジケーターを表示する
+4. THE Metronome_App SHALL 強拍、中拍、弱拍を区別する色分けされた視覚的インジケーターを表示する
+5. THE Metronome_App SHALL 拍子記号の説明とビートパターンの凡例を表示する
+6. THE Metronome_App SHALL 小節内での現在の拍位置を表示する
 
 ### Requirement 4
 
@@ -91,10 +95,11 @@
 #### Acceptance Criteria
 
 1. THE GUI_Window SHALL Time_Signatureを選択するためのドロップダウンメニューまたは選択コントロールを表示する
-2. THE Metronome_App SHALL 2拍子、3拍子、4拍子、6拍子の設定をサポートする
-3. WHEN Time_Signatureが設定されているとき、THE Metronome_App SHALL 拍子の最初の拍でAccent_Soundを再生する
-4. WHEN Time_Signatureが設定されているとき、THE Metronome_App SHALL 他の拍でBeat_Soundを再生する
+2. THE Metronome_App SHALL 1拍子、2拍子、3拍子、4拍子、5拍子、6拍子、7拍子、8拍子の設定をサポートする
+3. WHEN Time_Signatureが設定されているとき、THE Metronome_App SHALL 強拍でAccent_Soundを再生する
+4. WHEN Time_Signatureが設定されているとき、THE Metronome_App SHALL 中拍と弱拍でBeat_Soundを再生する
 5. THE GUI_Window SHALL 現在設定されているTime_Signatureを表示する
+6. THE Metronome_App SHALL 拍子に基づく3段階のアクセントパターン（強拍、中拍、弱拍）をサポートする
 
 ### Requirement 8
 
@@ -104,9 +109,11 @@
 
 1. THE GUI_Window SHALL Beat_Soundを選択するためのドロップダウンメニューまたは選択コントロールを表示する
 2. THE GUI_Window SHALL Accent_Soundを選択するためのドロップダウンメニューまたは選択コントロールを表示する
-3. THE Metronome_App SHALL 複数の内蔵Sound_Dataオプションを提供する
-4. THE Metronome_App SHALL カスタム音声ファイルの読み込みをサポートする
+3. THE Metronome_App SHALL 複数の内蔵Sound_Dataオプション（Click、Wood、Beep）を提供する
+4. THE Metronome_App SHALL カスタム音声ファイル（WAV、MP3、OGG形式）の読み込みをサポートする
 5. THE GUI_Window SHALL 現在選択されているSound_Dataを表示する
+6. THE GUI_Window SHALL アクセント機能の有効/無効を切り替えるコントロールを提供する
+7. THE Metronome_App SHALL 各サウンドタイプのテスト再生機能を提供する
 
 ### Requirement 9
 
@@ -130,3 +137,43 @@
 2. WHILE メトロノームが動作している間、THE GUI_Window SHALL 経過時間を表示する
 3. WHILE メトロノームが動作している間、THE GUI_Window SHALL 現在の拍数を表示する
 4. THE GUI_Window SHALL メトロノームの動作状態（停止中/動作中）を明確に表示する
+5. THE GUI_Window SHALL 強拍、中拍、弱拍を区別する色分けされたビート可視化を提供する
+6. THE GUI_Window SHALL 小節内での拍の進行状況を視覚的に表示する
+
+### Requirement 11
+
+**User Story:** ユーザーとして、より多様な音楽スタイルに対応したいので、拡張された拍子記号サポートを利用したい
+
+#### Acceptance Criteria
+
+1. THE Metronome_App SHALL 1/4、2/4、3/4、4/4、5/8、6/8、7/8、8/8の拍子記号をサポートする
+2. THE Metronome_App SHALL 各拍子記号に適切なアクセントパターンを適用する
+3. THE Metronome_App SHALL 複合拍子（6/8、7/8、8/8）での適切なビート間隔を計算する
+4. THE GUI_Window SHALL 各拍子記号の小節あたりの拍数を表示する
+5. THE CLI_Mode SHALL 各拍子記号のビートパターン説明を提供する
+
+### Requirement 12
+
+**User Story:** ユーザーとして、アクセントの使用を制御したいので、アクセント機能の有効/無効を切り替えたい
+
+#### Acceptance Criteria
+
+1. THE GUI_Window SHALL アクセント機能を有効/無効にするチェックボックスを提供する
+2. WHEN アクセント機能が無効のとき、THE Metronome_App SHALL すべての拍で同じBeat_Soundを使用する
+3. WHEN アクセント機能が有効のとき、THE Metronome_App SHALL 強拍でAccent_Soundを使用する
+4. THE Metronome_App SHALL アクセント設定の変更を即座に反映する
+5. THE GUI_Window SHALL 現在のアクセント設定状態を明確に表示する
+
+### Requirement 13
+
+**User Story:** ユーザーとして、練習環境に応じて音量を調節したいので、GUI上で音量を制御できるようにしたい
+
+#### Acceptance Criteria
+
+1. THE GUI_Window SHALL 音量を調節するためのスライダーコントロールを表示する
+2. THE Metronome_App SHALL 0.0から1.0の範囲でVolume_Levelを受け入れる
+3. WHEN Volume_Levelが変更されたとき、THE Metronome_App SHALL 新しい音量レベルを即座に適用する
+4. THE GUI_Window SHALL 現在のVolume_Level値をパーセンテージで表示する
+5. THE Metronome_App SHALL Volume_Level設定をBeat_SoundとAccent_Soundの両方に適用する
+6. THE GUI_Window SHALL 音量テスト機能を提供する（現在の音量レベルでサウンドを再生）
+7. THE Metronome_App SHALL 音量設定を設定ファイルに保存し、次回起動時に復元する

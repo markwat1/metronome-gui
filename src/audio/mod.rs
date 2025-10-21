@@ -243,9 +243,11 @@ impl SoundData {
 
 pub trait AudioPlayer {
     fn play_sound(&self, sound_type: &SoundType) -> Result<()>;
+    fn play_sound_with_volume(&self, sound_type: &SoundType, volume: f32) -> Result<()>;
     fn is_available(&self) -> bool;
     fn initialize(&mut self) -> Result<()>;
     fn preload_sounds(&mut self, sounds: &[SoundType]) -> Result<()>;
+    fn as_any(&self) -> &dyn std::any::Any;
 }
 
 pub struct CrossPlatformAudio {
@@ -313,6 +315,16 @@ impl CrossPlatformAudio {
     pub fn play_sound(&self, sound_type: &SoundType) -> Result<()> {
         match &self.player {
             Some(player) => player.play_sound(sound_type),
+            None => {
+                // Fallback to visual indication only
+                Ok(())
+            }
+        }
+    }
+    
+    pub fn play_sound_with_volume(&self, sound_type: &SoundType, volume: f32) -> Result<()> {
+        match &self.player {
+            Some(player) => player.play_sound_with_volume(sound_type, volume),
             None => {
                 // Fallback to visual indication only
                 Ok(())
@@ -744,6 +756,38 @@ mod rodio_player {
                 }
             }
             Ok(())
+        }
+        
+        fn play_sound_with_volume(&self, sound_type: &SoundType, volume: f32) -> Result<()> {
+            use rodio::buffer::SamplesBuffer;
+            
+            // Clamp volume to valid range
+            let volume = volume.clamp(0.0, 1.0);
+            
+            // Create a new sink for each sound to avoid blocking
+            let sink = Sink::try_new(&self.stream_handle)
+                .map_err(|e| AudioError::PlaybackFailed(e.to_string()))?;
+            
+            // Set volume on the sink
+            sink.set_volume(volume);
+            
+            // Get sound samples from cache or generate them
+            let samples = if let Some(cached_samples) = self.sound_cache.get(sound_type) {
+                cached_samples.clone()
+            } else {
+                // Generate sound on-the-fly if not cached
+                self.generate_sound_samples(sound_type)?
+            };
+            
+            let sound_source = SamplesBuffer::new(1, 44100, samples);
+            sink.append(sound_source);
+            sink.detach(); // Let it play independently
+            
+            Ok(())
+        }
+        
+        fn as_any(&self) -> &dyn std::any::Any {
+            self
         }
     }
 }
