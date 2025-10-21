@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2024-10-20
 
 ### Added
+
 - Initial release of CLI Metronome
 - Core metronome functionality with BPM range 60-200
 - Cross-platform audio support using rodio crate
@@ -23,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Detailed README with installation and usage instructions
 
 ### Features
+
 - **Accurate Timing**: High-precision timing using `std::time::Instant`
 - **Cross-Platform**: Works on Windows and Linux
 - **Audio Support**: Optional audio playback with automatic fallback
@@ -31,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Lightweight**: Minimal resource usage
 
 ### Technical Details
+
 - Written in Rust 2021 edition
 - Uses clap for CLI argument parsing
 - Uses rodio for cross-platform audio (optional feature)
@@ -39,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive test suite with both unit and integration tests
 
 ### Supported Platforms
+
 - Linux (with optional ALSA support)
 - Windows (with WASAPI support)
 - Visual-only mode available on all platforms

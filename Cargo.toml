@@ -2,8 +2,12 @@
 name = "cli-metronome"
 version = "0.1.0"
 edition = "2021"
-description = "A cross-platform CLI metronome application"
+description = "A cross-platform dual-mode metronome application with GUI and CLI interfaces"
 authors = ["Your Name <your.email@example.com>"]
+license = "MIT"
+repository = "https://github.com/your-username/cli-metronome"
+keywords = ["metronome", "music", "cli", "gui", "cross-platform"]
+categories = ["multimedia::audio", "command-line-utilities"]
 
 [dependencies]
 clap = { version = "4.0", features = ["derive"] }
@@ -11,10 +15,16 @@ rodio = { version = "0.17", optional = true }
 thiserror = "1.0"
 ctrlc = "3.4"
 egui = { version = "0.24", optional = true }
-eframe = { version = "0.24", optional = true }
+eframe = { version = "0.24", optional = true, features = ["default_fonts", "glow"] }
 tokio = { version = "1.0", features = ["rt-multi-thread", "time"], optional = true }
 serde = { version = "1.0", features = ["derive"], optional = true }
 serde_json = { version = "1.0", optional = true }
+
+[target.'cfg(windows)'.dependencies]
+winapi = { version = "0.3", features = [
+    "winuser", "windef", "wingdi", "winbase", "libloaderapi", "processthreadsapi",
+    "sysinfoapi", "handleapi", "std", "impl-default"
+] }
 
 [features]
 default = ["audio", "gui"]

@@ -75,6 +75,21 @@ cargo build --release --no-default-features --features audio
 cargo build --release --no-default-features
 ```
 
+### Windows Build Notes
+
+On Windows, the application includes specific dependencies for GUI support. If you encounter build errors related to `winapi` or `eframe`, ensure you have:
+
+1. **Visual Studio Build Tools** or **Visual Studio Community** installed
+2. **Windows SDK** installed
+3. Run the build in a **Developer Command Prompt** or **PowerShell**
+
+```powershell
+# Windows PowerShell build command
+cargo build --release --features gui
+```
+
+The `Cargo.toml` includes Windows-specific dependencies that should resolve most compilation issues automatically.
+
 ### Audio Support
 
 The metronome includes optional audio support with multiple built-in sounds and custom file support. If audio libraries are not available on your system, the application will automatically fall back to visual-only mode.
@@ -393,6 +408,29 @@ tests/
 
 **Problem**: Want to force CLI mode
 **Solution**: Always provide a BPM argument to use CLI mode: `cli-metronome 120`
+
+### Windows Build Issues
+
+**Problem**: Build fails with `winapi` or `eframe` errors
+**Solution**:
+1. Install Visual Studio Build Tools or Visual Studio Community
+2. Ensure Windows SDK is installed
+3. Use Developer Command Prompt or PowerShell
+4. Try building with explicit features: `cargo build --release --features gui`
+
+**Problem**: `error: could not compile 'eframe'` on Windows
+**Solution**:
+1. Update Rust to the latest version: `rustup update`
+2. Clear cargo cache: `cargo clean`
+3. Rebuild: `cargo build --release`
+4. If issues persist, try building without GUI: `cargo build --release --no-default-features --features audio`
+
+**Problem**: Missing Windows dependencies
+**Solution**:
+The `Cargo.toml` includes Windows-specific `winapi` features. If you still encounter issues:
+1. Check that you have the latest Windows SDK
+2. Ensure Visual C++ redistributables are installed
+3. Try building in a clean environment
 
 ### Audio Issues
 

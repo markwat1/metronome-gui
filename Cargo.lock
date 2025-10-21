@@ -729,6 +729,7 @@ dependencies = [
  "serde_json",
  "thiserror",
  "tokio",
+ "winapi",
 ]
 
 [[package]]

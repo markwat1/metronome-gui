@@ -148,9 +148,9 @@ fn launch_gui_mode() -> Result<()> {
         eprintln!("GUI mode is not available. This build was compiled without GUI support.");
         eprintln!("Please provide BPM as an argument to use CLI mode.");
         eprintln!("Example: {} 120", std::env::args().next().unwrap_or_else(|| "metronome".to_string()));
-        Err(MetronomeError::GuiError(GuiError::InitializationFailed(
+        Err(crate::MetronomeError::SystemError(
             "GUI feature not enabled".to_string()
-        )))
+        ))
     }
 }
 
